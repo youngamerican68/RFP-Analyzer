@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { CreateTasksRequest, CreateTasksResponse, ErrorResponse } from '@/lib/types';
+import { safeError, safeLog } from '@/lib/log-sanitizer';
 
 /**
  * POST /api/clickup/create-tasks
@@ -34,6 +35,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Log request (without sensitive token)
+    safeLog('Creating ClickUp tasks', {
+      listId: body.listId,
+      deliverableCount: body.brief.deliverables.length,
+    });
+
     // Create tasks in ClickUp
     const createdCount = await createClickUpTasks(
       body.brief,
@@ -51,7 +58,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Error in /api/clickup/create-tasks:', error);
+    safeError('Error in /api/clickup/create-tasks:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
@@ -146,22 +153,21 @@ async function createClickUpTasks(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
+        safeError(
           `ClickUp API error for deliverable "${deliverable.title}":`,
-          response.status,
-          errorText
+          { status: response.status, error: errorText }
         );
         throw new Error(
-          `ClickUp API returned status ${response.status}: ${errorText}`
+          `ClickUp API returned status ${response.status}`
         );
       }
 
       const result = await response.json();
-      console.log(`Created task in ClickUp:`, result.id, deliverable.title);
+      safeLog(`Created task in ClickUp:`, { taskId: result.id, title: deliverable.title });
       createdCount++;
 
     } catch (taskError) {
-      console.error(`Failed to create task for "${deliverable.title}":`, taskError);
+      safeError(`Failed to create task for "${deliverable.title}":`, taskError);
       // For v1, we'll fail fast on the first error
       // TODO: Future enhancement - collect errors and continue, return partial success
       throw taskError;

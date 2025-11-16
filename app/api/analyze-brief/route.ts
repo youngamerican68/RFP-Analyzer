@@ -1,14 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { AnalyzeBriefRequest, ExtractedBrief, ErrorResponse } from '@/lib/types';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
+import { safeError, safeLog, truncateForLog } from '@/lib/log-sanitizer';
 
 /**
  * POST /api/analyze-brief
  *
  * Accepts a text input (RFP, client email, project brief) and returns
  * a structured ExtractedBrief object by calling an LLM.
+ *
+ * Rate limited to prevent abuse (20 requests per hour per IP)
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 20 requests per hour per IP
+    const clientIP = getClientIP(request.headers);
+    const rateLimit = checkRateLimit(clientIP, {
+      maxRequests: 20,
+      windowMs: 60 * 60 * 1000, // 1 hour
+    });
+
+    if (!rateLimit.allowed) {
+      const retryAfterSeconds = Math.ceil((rateLimit.retryAfter || 0) / 1000);
+      safeLog(`Rate limit exceeded for IP: ${clientIP}`);
+
+      return NextResponse.json<ErrorResponse>(
+        {
+          error: 'Rate limit exceeded',
+          details: `Too many requests. Please try again in ${retryAfterSeconds} seconds.`,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': retryAfterSeconds.toString(),
+            'X-RateLimit-Limit': '20',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+          },
+        }
+      );
+    }
+
     // Parse request body
     const body: AnalyzeBriefRequest = await request.json();
 
@@ -20,13 +52,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Log request (truncated, no PII)
+    safeLog('Analyzing brief', {
+      textLength: body.text.length,
+      preview: truncateForLog(body.text, 100),
+    });
+
     // Call LLM to extract structured brief
     const extractedBrief = await callLLMForBrief(body.text);
 
-    return NextResponse.json<ExtractedBrief>(extractedBrief, { status: 200 });
+    // Add rate limit headers to successful response
+    return NextResponse.json<ExtractedBrief>(extractedBrief, {
+      status: 200,
+      headers: {
+        'X-RateLimit-Limit': '20',
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+      },
+    });
 
   } catch (error) {
-    console.error('Error in /api/analyze-brief:', error);
+    safeError('Error in /api/analyze-brief:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

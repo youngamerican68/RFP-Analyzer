@@ -3,6 +3,64 @@
 import { useState } from 'react';
 import type { ExtractedBrief } from '@/lib/types';
 
+// Sample RFP text for testing
+const SAMPLE_RFP = `Request for Proposal: E-Commerce Mobile App Development
+
+Project Overview:
+We are seeking a development partner to build a mobile e-commerce application for our retail business, "TechGear Plus". The app should provide a seamless shopping experience for electronics and tech accessories.
+
+Project Goals:
+- Increase mobile sales by 40% in the first year
+- Improve customer engagement and retention
+- Reduce cart abandonment rate
+- Provide personalized product recommendations
+
+Key Deliverables:
+1. Native mobile applications for iOS and Android
+2. User authentication and profile management system
+3. Product catalog with search and filtering capabilities
+4. Shopping cart and secure checkout flow
+5. Payment gateway integration (Stripe, PayPal)
+6. Order tracking and history
+7. Push notifications for promotions and order updates
+8. Admin dashboard for product and order management
+9. API documentation and deployment guide
+
+Timeline and Deadlines:
+- Proposal submission: January 15, 2024
+- Project kickoff: February 1, 2024
+- Design mockups: March 1, 2024
+- Beta version: April 15, 2024
+- Final delivery and launch: June 1, 2024
+
+Stakeholders:
+- Sarah Chen, VP of Digital Commerce (Project Sponsor)
+- Mike Rodriguez, Head of IT (Technical Lead)
+- Jennifer Park, Marketing Director (Business Owner)
+- David Liu, Customer Experience Manager (UX Lead)
+
+Budget: $150,000 - $200,000
+
+Technical Requirements:
+- Must support iOS 14+ and Android 10+
+- Integration with existing inventory management system (SAP)
+- Compliance with PCI DSS for payment processing
+- Support for multiple languages (English, Spanish, French)
+- Analytics integration (Google Analytics, Mixpanel)
+
+Open Questions:
+1. Should we include augmented reality (AR) product preview features?
+2. What's the expected daily active user count for infrastructure planning?
+3. Do you require offline mode functionality?
+4. Should the app support multiple currencies for international customers?
+5. What are your preferences for cloud hosting (AWS, Google Cloud, Azure)?
+6. Do you need integration with social media for social login and sharing?
+
+Additional Notes:
+Our current website receives approximately 50,000 monthly visitors, with 30% accessing via mobile devices. We expect the app to significantly increase mobile engagement.
+
+Please submit proposals including timeline, cost breakdown, team composition, and portfolio of similar projects.`;
+
 export default function Home() {
   // Input state
   const [inputText, setInputText] = useState('');
@@ -78,6 +136,15 @@ export default function Home() {
   };
 
   /**
+   * Load sample RFP text for testing
+   */
+  const handleLoadSample = () => {
+    setInputText(SAMPLE_RFP);
+    setAnalyzedBrief(null);
+    setAnalyzeError(null);
+  };
+
+  /**
    * Create tasks in ClickUp by calling the /api/clickup/create-tasks endpoint
    */
   const handleCreateClickUpTasks = async () => {
@@ -150,13 +217,23 @@ export default function Home() {
               disabled={isAnalyzing}
             />
 
-            <button
-              onClick={handleAnalyzeBrief}
-              disabled={isAnalyzing || !inputText.trim()}
-              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-            >
-              {isAnalyzing ? 'Analyzing...' : 'Analyze Brief'}
-            </button>
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={handleLoadSample}
+                disabled={isAnalyzing}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                title="Load a sample RFP to test the analyzer"
+              >
+                Load Sample RFP
+              </button>
+              <button
+                onClick={handleAnalyzeBrief}
+                disabled={isAnalyzing || !inputText.trim()}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+              >
+                {isAnalyzing ? 'Analyzing...' : 'Analyze Brief'}
+              </button>
+            </div>
 
             {analyzeError && (
               <div className="mt-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-lg">
