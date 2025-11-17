@@ -1,0 +1,49 @@
+{
+  "name": "ai-pr-risk-summary-forge",
+  "version": "1.0.0",
+  "description": "AI-powered PR risk analysis for Jira - Apple Mini App ready",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "forge build",
+    "deploy": "forge deploy",
+    "install-app": "forge install",
+    "tunnel": "forge tunnel",
+    "lint": "eslint src --ext .ts,.tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@forge/api": "^3.0.0",
+    "@forge/resolver": "^1.5.0",
+    "@forge/bridge": "^3.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@forge/cli": "^6.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "openai": "^4.0.0"
+  },
+  "keywords": [
+    "forge",
+    "jira",
+    "bitbucket",
+    "ai",
+    "code-review",
+    "risk-analysis",
+    "mini-app",
+    "apple"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
