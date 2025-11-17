@@ -1,0 +1,27 @@
+modules:
+  jira:issuePanel:
+    - key: ai-pr-risk-summary-panel
+      resource: main
+      resolver:
+        function: resolver
+      title: AI PR Risk Summary
+      icon: https://developer.atlassian.com/platform/forge/images/forge-icon.png
+
+function:
+  - key: resolver
+    handler: index.handler
+
+resources:
+  - key: main
+    path: static/build
+
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/YOUR_APP_ID_HERE
+
+permissions:
+  scopes:
+    - read:jira-work
+    - read:jira-user
+    - storage:app
